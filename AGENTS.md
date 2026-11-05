@@ -68,7 +68,8 @@ Web -> Infrastructure -> Application -> Domain
   without special loading or relationships are registered with `SqlRepository<TEntity>`
   directly. Query, mapping and transaction logic stays there,
   never in pages. Filters must be translated to SQL; do not load whole tables to
-  filter in memory.
+  filter in memory. `IRepository.Find` takes an `Expression<Func<TEntity, bool>>`,
+  so filters must stay translatable (no domain methods such as `Movie.HasActor`).
 - **Nullable reference types** are enabled in every project; annotate optional
   values (`string?`, `int?`).
 - **Language:** write code, comments and commit messages in English.

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +24,9 @@ internal class SqlRepository<TEntity>(MovieManagerDbContext dbContext) : IReposi
         return oneElement;
     }
 
-    public TEntity? Find(Func<TEntity, bool> filter)
+    public TEntity? Find(Expression<Func<TEntity, bool>> filter)
     {
-        return Query().AsEnumerable().FirstOrDefault(filter);
+        return Query().FirstOrDefault(filter);
     }
 
     public IList<TEntity> FindAll()
