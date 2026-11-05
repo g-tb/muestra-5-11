@@ -40,8 +40,9 @@ internal class MovieSqlRepository(MovieManagerDbContext dbContext) : SqlReposito
             ? DbContext.Categories.Find(source.Category.Id)
             : null;
 
+        List<int> actorIds = source.Actors.Select(actor => actor.Id).Where(id => id > 0).Distinct().ToList();
         target.Actors.Clear();
-        foreach (int actorId in source.Actors.Select(actor => actor.Id).Where(id => id > 0).Distinct())
+        foreach (int actorId in actorIds)
         {
             Actor? actor = DbContext.Actors.Find(actorId);
             if (actor is not null)
