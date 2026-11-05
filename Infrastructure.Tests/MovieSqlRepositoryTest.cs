@@ -214,9 +214,6 @@ public class MovieSqlRepositoryTest : InMemoryRepositoryTestBase<Movie>
     }
 
     [TestMethod]
-    [Ignore("Bug: MovieSqlRepository.Update reloads the same tracked instance it was given, so " +
-            "foundMovie.Actors.Clear() also empties updatedEntity.Actors before they are re-added; " +
-            "updating a movie loaded in the same scope drops all its actors.")]
     public void Update_MovieAlreadyLoadedInSameScope_KeepsChangedActors()
     {
         Movie added = Repository.Add(NewMatrix(null, Detached(_keanu)));
@@ -232,9 +229,6 @@ public class MovieSqlRepositoryTest : InMemoryRepositoryTestBase<Movie>
     }
 
     [TestMethod]
-    [Ignore("Bug: MovieSqlRepository.Update reloads the same tracked instance it was given, so " +
-            "foundMovie.Actors.Clear() also empties updatedEntity.Actors before they are re-added; " +
-            "updating a loaded movie without touching its actors still drops them.")]
     public void Update_MovieAlreadyLoadedInSameScopeWithUnchangedActors_KeepsActors()
     {
         Movie added = Repository.Add(NewMatrix(null, Detached(_keanu), Detached(_carrie)));
