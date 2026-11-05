@@ -19,8 +19,8 @@ public static class DependencyInjection
         services.AddDbContext<MovieManagerDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<DemoDataSeeder>();
         services.AddScoped<IRepository<Movie>, MovieSqlRepository>();
-        services.AddScoped<IRepository<Actor>, ActorSqlRepository>();
-        services.AddScoped<IRepository<Category>, CategorySqlRepository>();
+        services.AddScoped<IRepository<Actor>, SqlRepository<Actor>>();
+        services.AddScoped<IRepository<Category>, SqlRepository<Category>>();
 
         return services;
     }

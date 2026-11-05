@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Application.Dtos;
 using Application.Exceptions;
 using Application.Interfaces;
@@ -176,9 +177,9 @@ public class MovieServiceTest
             return oneElement;
         }
 
-        public Movie? Find(Func<Movie, bool> filter)
+        public Movie? Find(Expression<Func<Movie, bool>> filter)
         {
-            return _movies.Where(filter).FirstOrDefault();
+            return _movies.AsQueryable().Where(filter).FirstOrDefault();
         }
 
         public IList<Movie> FindAll()
