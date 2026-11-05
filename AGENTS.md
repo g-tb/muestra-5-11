@@ -62,7 +62,11 @@ Web -> Infrastructure -> Application -> Domain
   throws `DomainException`; services validate business rules (such as duplicates)
   and throw `LogicException`.
 - **Repositories:** interfaces in `Application/Interfaces`, implementations in
-  `Infrastructure/Persistence`. Query, mapping and transaction logic stays there,
+  `Infrastructure/Persistence`. The generic `SqlRepository<TEntity>` owns the CRUD
+  algorithm (Template Method); entity-specific repositories derive from it and override
+  its protected steps (`Query`, `FindTracked`, `PrepareForAdd`, `ApplyChanges`). Entities
+  without special loading or relationships are registered with `SqlRepository<TEntity>`
+  directly. Query, mapping and transaction logic stays there,
   never in pages. Filters must be translated to SQL; do not load whole tables to
   filter in memory.
 - **Nullable reference types** are enabled in every project; annotate optional

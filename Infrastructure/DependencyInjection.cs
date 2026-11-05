@@ -20,7 +20,7 @@ public static class DependencyInjection
         services.AddScoped<DemoDataSeeder>();
         services.AddScoped<IRepository<Movie>, MovieSqlRepository>();
         services.AddScoped<IRepository<Actor>, ActorSqlRepository>();
-        services.AddScoped<IRepository<Category>, CategorySqlRepository>();
+        services.AddScoped<IRepository<Category>, SqlRepository<Category>>();
 
         return services;
     }
