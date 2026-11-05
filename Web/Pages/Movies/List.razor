@@ -1,0 +1,69 @@
+@page "/movies"
+
+<PageTitle>Movies List</PageTitle>
+
+@using Application.Dtos
+@using Application.Services
+@inject IMovieService MovieService
+
+<h1>
+
+    Movies List
+
+    <NavLink href="movies/create" class="btn btn-success btn-sm" style="float: right;margin-right: 40px;">Create +</NavLink>
+
+</h1>
+
+<table class="table">
+
+<thead>
+
+<tr>
+    <th>Title</th>
+    <th>Director</th>
+    <th>Release Year</th>
+    
+    <th>Acciones</th>
+</tr>
+
+</thead>
+<tbody>
+
+@foreach (var movie in _moviesList){
+
+    <tr>
+        <td>@movie.Title</td>
+        <td>@movie.Director</td>
+        <td>@movie.ReleaseYear</td>
+        <td>
+        
+           <a class="btn btn-success btn-sm" href="movies/@movie.Id/edit/">Editar</a>
+        
+           <button class="btn btn-danger btn-sm" @onclick="(() => DeleteMovie(movie.Id))">Eliminar</button>
+        
+        </td>
+    </tr>
+
+}
+
+</tbody>
+
+</table>
+
+@code{
+
+    private List<MovieDTO> _moviesList = new();
+
+    protected override void OnInitialized()
+    {
+        _moviesList = MovieService.GetAll().ToList();
+    }
+    
+    private void DeleteMovie(int id){
+
+        MovieService.Delete(id);
+        _moviesList = MovieService.GetAll().ToList();
+
+    }
+
+}

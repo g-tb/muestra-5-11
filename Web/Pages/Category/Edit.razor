@@ -1,0 +1,50 @@
+@page "/categories/{id:int}/edit/"
+
+<h1>Editar Categoria</h1>
+
+@using Application.Dtos
+@using Application.Services
+
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+
+<form>
+    <div class="form-group">
+            <label for="releaseYear">Id</label>
+            <input type="text" class="form-control" id="releaseYear" disabled value="@_currentCategory.Id" />
+        </div>
+    <div class="form-group">
+        <label for="title">Nombre</label>
+        <input type="text" class="form-control" id="title" @bind="_currentCategory.Name"/>
+    </div>
+
+    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Guardar cambios</button>
+    <button type="button" class="btn btn-link" @onclick="Cancel">Cancelar</button>
+</form>
+
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private CategoryDTO _currentCategory = new();
+
+    protected override void OnInitialized(){
+
+        _currentCategory = CategoryService.FindById(Id);
+    }
+
+
+    private void SaveChanges(){
+        CategoryService.Update(_currentCategory);
+        NavigationManager.NavigateTo("/categories");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/categories");
+    }
+
+}

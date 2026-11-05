@@ -1,0 +1,121 @@
+@page "/movies/{id:int}/edit/"
+
+<h1>Editar película</h1>
+
+@using Application.Dtos
+@using Application.Services
+
+@inject ICategoryService CategoryService
+@inject IActorService ActorService
+@inject IMovieService MovieService
+
+@inject NavigationManager NavigationManager
+
+<form>
+    <div class="form-group">
+        <label for="title">Título</label>
+        <input type="text" class="form-control" id="title" @bind="_currentMovie.Title" />
+    </div>
+    <div class="form-group">
+        <label for="director">Director</label>
+        <input type="text" class="form-control" id="director" @bind="_currentMovie.Director" />
+    </div>
+    <div class="form-group">
+        <label for="releaseYear">Año de lanzamiento</label>
+        <input type="text" class="form-control" id="releaseYear" @bind="_currentMovie.ReleaseYear" />
+    </div>
+    <div class="form-group">
+        <label for="category">Category</label>
+        <select class="form-control" id="category" @onchange="OnChangeCategory" >
+            <option disable selected value="">Select Category</option>
+            @foreach (var category in _categories){
+                <option value="@category.Id" selected="@(category.Id==_selectedCategoryId)" >
+                    @category.Name
+                </option>
+            }
+        </select>
+    
+    </div>
+    
+    <div class="form-group">
+           <label for="actors">Select Actors</label>
+           <select data-mdb-select-init multiple class="form-control" id="actors" @onchange="OnChangeActors" >
+               @foreach (var actor in _actors){
+                   <option value="@actor.Id" selected="@(_currentMovie.HasActor(actor.Id))" >
+                       @actor.Name
+                   </option>
+               }
+           </select>
+    </div>
+    
+    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Guardar cambios</button>
+    <button type="button" class="btn btn-link" @onclick="Cancel">Cancelar</button>
+</form>
+
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private MovieDTO _currentMovie = new();
+    
+    private List<CategoryDTO> _categories = new();
+
+    private List<ActorDTO> _actors = new();
+    
+    private int _selectedCategoryId;
+    
+    protected override void OnInitialized(){
+
+        _currentMovie = MovieService.FindById(Id);
+        _categories = CategoryService.GetAll().ToList();
+        _actors = ActorService.GetAll().ToList();
+        
+        if (_currentMovie.Category != null){
+            _selectedCategoryId = _currentMovie.Category.Id;
+        }
+    }
+    
+    private void SaveChanges(){
+
+        MovieService.Update(_currentMovie);
+
+        NavigationManager.NavigateTo("/movies");
+    }
+    
+    private void OnChangeCategory(ChangeEventArgs e){
+        string? selectedValue = e.Value?.ToString();
+        if (string.IsNullOrEmpty(selectedValue))
+        {
+            return;
+        }
+
+        int catId = int.Parse(selectedValue);
+        _currentMovie.Category = CategoryService.FindById(catId);
+    }
+    
+    private void OnChangeActors(ChangeEventArgs e){
+
+        if (e.Value is not string[] actorsIdsString)
+        {
+            return;
+        }
+
+        var selectedActors = new List<ActorDTO>();
+        foreach (var stringId in actorsIdsString) {
+            var actor = ActorService.FindById(int.Parse(stringId));
+            selectedActors.Add(actor);
+        }
+        _currentMovie.Actors = selectedActors;
+
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/movies");
+    }
+
+
+}

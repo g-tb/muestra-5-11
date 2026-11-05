@@ -1,0 +1,41 @@
+@page "/categories/create/"
+
+<PageTitle>Create Category</PageTitle>
+
+@using Application.Dtos
+@using Application.Services
+
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+
+
+<h1>Create Category</h1>
+<form>
+    <div class="form-group">
+        <label for="title">Nombre</label>
+        <input type="text" class="form-control" id="title" @bind="_currentCategory.Name" />
+    </div>
+
+    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Guardar cambios</button>
+
+    <button type="button" class="btn btn-link" @onclick="Cancel">Cancelar</button>
+
+</form>
+
+
+
+@code {
+    private readonly CategoryDTO _currentCategory = new();
+
+    private void SaveChanges()
+    {
+        CategoryService.AddMovie(_currentCategory);
+        NavigationManager.NavigateTo("/categories");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/categories");
+    }
+
+}

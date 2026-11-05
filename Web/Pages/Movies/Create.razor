@@ -1,0 +1,80 @@
+@page "/movies/create/"
+
+<PageTitle>Create Movie</PageTitle>
+
+@using Application.Dtos
+@using Application.Services
+
+@inject IMovieService MovieService
+
+@inject NavigationManager NavigationManager
+
+
+<h1>Create Movie</h1>
+
+<form>
+
+<div class="form-group">
+
+    <label for="title">Título</label>
+
+    <input type="text" class="form-control" id="title" @bind="_currentMovie.Title" />
+
+</div>
+
+<div class="form-group">
+
+    <label for="director">Director</label>
+
+    <input type="text" class="form-control" id="director" @bind="_currentMovie.Director" />
+
+</div>
+
+<div class="form-group">
+
+    <label for="releaseYear">Año de lanzamiento</label>
+
+    <input type="number" class="form-control" id="releaseYear" @bind="_currentMovie.ReleaseYear" />
+
+</div>
+
+    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Guardar cambios</button>
+
+    <button type="button" class="btn btn-link" @onclick="Cancel">Cancelar</button>
+
+</form>
+
+
+
+@code {
+
+    private readonly MovieDTO _currentMovie = new();
+
+
+
+    protected override void OnInitialized()
+
+    {
+
+        _currentMovie.ReleaseYear= DateTime.Now.Year;
+
+    }
+
+
+
+    private void SaveChanges()
+
+    {
+
+        MovieService.AddMovie(_currentMovie);
+
+        NavigationManager.NavigateTo("/movies");
+
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/movies");
+    }
+
+}

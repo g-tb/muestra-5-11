@@ -1,0 +1,53 @@
+@page "/actors/{id:int}/edit/"
+
+<h1>Editar actor</h1>
+
+@using Application.Dtos
+@using Application.Services
+
+@inject IActorService ActorService
+@inject NavigationManager NavigationManager
+
+<form>
+    <div class="form-group">
+        <label for="title">Nombre</label>
+        <input type="text" class="form-control" id="title" @bind="_currentActor.Name" />
+    </div>
+    <div class="form-group">
+        <label for="director">Bio</label>
+        <input type="text" class="form-control" id="director" @bind="_currentActor.Bio" />
+    </div>
+    <div class="form-group">
+           <label for="bio">Birth Date</label>
+           <input type="date" class="form-control" id="bio" @bind="_currentActor.BirthDate"/>
+       </div>
+    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Guardar cambios</button>
+    <button type="button" class="btn btn-link" @onclick="Cancel">Cancelar</button>
+</form>
+
+
+
+@code {
+    
+    [Parameter]
+    public int Id { get; set; }
+
+    private ActorDTO _currentActor = new();
+
+    protected override void OnInitialized(){
+
+        _currentActor = ActorService.FindById(Id);
+    }
+
+
+    private void SaveChanges(){
+        ActorService.Update(_currentActor);
+        NavigationManager.NavigateTo("/actors");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/actors");
+    }
+
+}
