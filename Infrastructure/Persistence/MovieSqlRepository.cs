@@ -20,15 +20,8 @@ internal class MovieSqlRepository(MovieManagerDbContext dbContext) : SqlReposito
 
     protected override void PrepareForAdd(Movie movie)
     {
-        movie.Category = movie.Category?.Id > 0
-            ? DbContext.Categories.Find(movie.Category.Id)
-            : null;
-
-        movie.Actors = movie.Actors
-            .Select(actor => DbContext.Actors.Find(actor.Id))
-            .OfType<Actor>()
-            .DistinctBy(actor => actor.Id)
-            .ToList();
+        movie.Category = ResolveCategory(movie.Category);
+        movie.Actors = ResolveActors(movie.Actors);
     }
 
     protected override void ApplyChanges(Movie target, Movie source)
@@ -36,19 +29,29 @@ internal class MovieSqlRepository(MovieManagerDbContext dbContext) : SqlReposito
         target.Title = source.Title;
         target.Director = source.Director;
         target.ReleaseYear = source.ReleaseYear;
-        target.Category = source.Category?.Id > 0
-            ? DbContext.Categories.Find(source.Category.Id)
-            : null;
+        target.Category = ResolveCategory(source.Category);
 
-        List<int> actorIds = source.Actors.Select(actor => actor.Id).Where(id => id > 0).Distinct().ToList();
+        // Resolve before clearing: source and target may be the same tracked instance.
+        List<Actor> actors = ResolveActors(source.Actors);
         target.Actors.Clear();
-        foreach (int actorId in actorIds)
-        {
-            Actor? actor = DbContext.Actors.Find(actorId);
-            if (actor is not null)
-            {
-                target.Actors.Add(actor);
-            }
-        }
+        target.Actors.AddRange(actors);
+    }
+
+    private Category? ResolveCategory(Category? category)
+    {
+        return category?.Id > 0
+            ? DbContext.Categories.Find(category.Id)
+            : null;
+    }
+
+    private List<Actor> ResolveActors(IEnumerable<Actor> actors)
+    {
+        return actors
+            .Select(actor => actor.Id)
+            .Where(id => id > 0)
+            .Distinct()
+            .Select(id => DbContext.Actors.Find(id))
+            .OfType<Actor>()
+            .ToList();
     }
 }
