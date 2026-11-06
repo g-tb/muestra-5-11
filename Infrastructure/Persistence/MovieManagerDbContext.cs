@@ -31,7 +31,9 @@ internal class MovieManagerDbContext(DbContextOptions<MovieManagerDbContext> opt
 
         modelBuilder.Entity<Movie>(entity =>
         {
-            entity.ToTable("Movies", "dbo");
+            entity.ToTable("Movies", "dbo", table => table.HasCheckConstraint(
+                "CK_Movies_ImdbRating",
+                "[ImdbRating] >= 0 AND [ImdbRating] <= 10"));
             entity.HasKey(movie => movie.Id);
             entity.Property(movie => movie.Id).ValueGeneratedOnAdd();
             entity.Property(movie => movie.Title).IsRequired().HasMaxLength(200);
@@ -39,6 +41,13 @@ internal class MovieManagerDbContext(DbContextOptions<MovieManagerDbContext> opt
             entity.Property(movie => movie.ReleaseYear);
             entity.Ignore(movie => movie.Budget);
             entity.HasIndex(movie => movie.Title).IsUnique().HasDatabaseName("UX_Movies_Title");
+            entity.Property(movie => movie.ImdbId).HasMaxLength(20);
+            entity.Property(movie => movie.ImdbRating).HasPrecision(3, 1);
+            // Filtered so that any number of movies without an IMDb id can coexist.
+            entity.HasIndex(movie => movie.ImdbId)
+                .IsUnique()
+                .HasFilter("[ImdbId] IS NOT NULL")
+                .HasDatabaseName("UX_Movies_ImdbId");
 
             entity.HasOne(movie => movie.Category)
                 .WithMany()
