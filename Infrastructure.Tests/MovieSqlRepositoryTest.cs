@@ -169,6 +169,28 @@ public class MovieSqlRepositoryTest : InMemoryRepositoryTestBase<Movie>
     }
 
     [TestMethod]
+    public void Add_WithImdbFields_PersistsThem()
+    {
+        Movie added = Repository.Add(new Movie { Title = "The Matrix", ImdbId = "tt0133093", ImdbRating = 8.7m });
+
+        Movie stored = FreshRepository().Find(movie => movie.Id == added.Id)!;
+        Assert.AreEqual("tt0133093", stored.ImdbId);
+        Assert.AreEqual(8.7m, stored.ImdbRating);
+    }
+
+    [TestMethod]
+    public void Update_DetachedMovieWithImdbFields_ReplacesThem()
+    {
+        Movie added = Repository.Add(new Movie { Title = "The Matrix", ImdbId = "tt0133093", ImdbRating = 8.7m });
+
+        FreshRepository().Update(new Movie { Id = added.Id, Title = "The Matrix", ImdbId = "tt0234215", ImdbRating = 7.2m });
+
+        Movie stored = FreshRepository().Find(movie => movie.Id == added.Id)!;
+        Assert.AreEqual("tt0234215", stored.ImdbId);
+        Assert.AreEqual(7.2m, stored.ImdbRating);
+    }
+
+    [TestMethod]
     public void Update_DetachedMovieWithoutCategoryAndActors_ClearsRelations()
     {
         Movie added = Repository.Add(NewMatrix(Detached(_sciFi), Detached(_keanu)));

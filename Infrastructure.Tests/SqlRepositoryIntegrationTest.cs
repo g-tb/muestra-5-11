@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -104,6 +105,73 @@ public class SqlRepositoryIntegrationTest
 
         categories.Delete(category.Id);
         Assert.IsNull(categories.Find(x => x.Id == category.Id));
+    }
+
+    [TestMethod]
+    public void MovieRepository_TwoMoviesWithoutImdbId_BothSaved_WhenSqlConnectionConfigured()
+    {
+        if (!IsSqlTestEnabled())
+        {
+            return;
+        }
+
+        using ServiceProvider provider = BuildProvider();
+        using IServiceScope scope = provider.CreateScope();
+        IRepository<Movie> movies = scope.ServiceProvider.GetRequiredService<IRepository<Movie>>();
+
+        string suffix = Guid.NewGuid().ToString("N");
+        Movie first = movies.Add(new Movie { Title = $"No IMDb 1 {suffix}" });
+        Movie second = movies.Add(new Movie { Title = $"No IMDb 2 {suffix}" });
+
+        Assert.AreNotEqual(first.Id, second.Id);
+        Assert.IsNull(movies.Find(x => x.Id == second.Id)!.ImdbId);
+
+        movies.Delete(first.Id);
+        movies.Delete(second.Id);
+    }
+
+    [TestMethod]
+    public void MovieRepository_DuplicateImdbId_ThrowsDbUpdateException_WhenSqlConnectionConfigured()
+    {
+        if (!IsSqlTestEnabled())
+        {
+            return;
+        }
+
+        using ServiceProvider provider = BuildProvider();
+        string suffix = Guid.NewGuid().ToString("N");
+        string imdbId = $"tt{Random.Shared.NextInt64(10_000_000_000, 99_999_999_999)}";
+        Movie original;
+
+        using (IServiceScope scope = provider.CreateScope())
+        {
+            IRepository<Movie> movies = scope.ServiceProvider.GetRequiredService<IRepository<Movie>>();
+            original = movies.Add(new Movie { Title = $"IMDb 1 {suffix}", ImdbId = imdbId });
+
+            AssertThrows<DbUpdateException>(
+                () => movies.Add(new Movie { Title = $"IMDb 2 {suffix}", ImdbId = imdbId }));
+        }
+
+        using (IServiceScope cleanup = provider.CreateScope())
+        {
+            cleanup.ServiceProvider.GetRequiredService<IRepository<Movie>>().Delete(original.Id);
+        }
+    }
+
+    private static TException AssertThrows<TException>(Action action)
+        where TException : Exception
+    {
+        try
+        {
+            action();
+        }
+        catch (TException exception)
+        {
+            return exception;
+        }
+
+        Assert.Fail($"Expected exception of type {typeof(TException).FullName}.");
+        throw new InvalidOperationException("Assert.Fail did not throw.");
     }
 
     private static bool IsSqlTestEnabled()
