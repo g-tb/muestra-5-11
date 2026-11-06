@@ -10,7 +10,9 @@ internal class MovieService(IRepository<Movie> moviesRepository) : IMovieService
     public MovieDTO AddMovie(MovieDTO movie)
     {
         ValidateMovieName(movie);
-        Movie newMovie = moviesRepository.Add(movie.toEntity());
+        Movie entity = movie.toEntity();
+        ValidateUniqueImdbId(entity);
+        Movie newMovie = moviesRepository.Add(entity);
         return MovieDTO.fromEntity(newMovie);
     }
 
@@ -27,6 +29,22 @@ internal class MovieService(IRepository<Movie> moviesRepository) : IMovieService
         }
     }
 
+    // Movie stores the IMDb id trimmed and lowercased, so this comparison doesn't depend on the database collation.
+    private void ValidateUniqueImdbId(Movie movie)
+    {
+        if (movie.ImdbId is null)
+        {
+            return;
+        }
+
+        string imdbId = movie.ImdbId;
+        int movieId = movie.Id;
+        if (moviesRepository.Find(x => x.ImdbId == imdbId && x.Id != movieId) != null)
+        {
+            throw new LogicException("Can't add movie with same IMDb id");
+        }
+    }
+
     public MovieDTO FindById(int id)
     {
         return MovieDTO.fromEntity(moviesRepository.Find(x => x.Id == id)!);
@@ -34,7 +52,9 @@ internal class MovieService(IRepository<Movie> moviesRepository) : IMovieService
 
     public MovieDTO Update(MovieDTO updatedMovie)
     {
-        return MovieDTO.fromEntity(moviesRepository.Update(updatedMovie.toEntity())!);
+        Movie entity = updatedMovie.toEntity();
+        ValidateUniqueImdbId(entity);
+        return MovieDTO.fromEntity(moviesRepository.Update(entity)!);
     }
 
     public void Delete(int id)

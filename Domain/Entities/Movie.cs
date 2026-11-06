@@ -47,6 +47,33 @@ public class Movie : IEntity
         }
     }
 
+    /// <summary>Optional IMDb id, stored trimmed and lowercased so comparisons don't depend on collation.</summary>
+    public string? ImdbId
+    {
+        get;
+        set
+        {
+            if (value is not null && string.IsNullOrWhiteSpace(value))
+            {
+                throw new DomainException("IMDb id must not be empty");
+            }
+            field = value?.Trim().ToLowerInvariant();
+        }
+    }
+
+    public decimal? ImdbRating
+    {
+        get;
+        set
+        {
+            if (value is < 0m or > 10m)
+            {
+                throw new DomainException("IMDb rating must be between 0 and 10");
+            }
+            field = value;
+        }
+    }
+
     public void Update(Movie updatedMovie)
     {
         Title = updatedMovie.Title;
@@ -54,5 +81,7 @@ public class Movie : IEntity
         ReleaseYear = updatedMovie.ReleaseYear;
         Category = updatedMovie.Category;
         Actors = updatedMovie.Actors;
+        ImdbId = updatedMovie.ImdbId;
+        ImdbRating = updatedMovie.ImdbRating;
     }
 }

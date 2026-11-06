@@ -24,7 +24,8 @@ feature band).
    References `Domain`. Repository and external-service interfaces live in
    `Application/Interfaces`.
 3. **Infrastructure**: EF Core repositories against Azure SQL Edge
-   (`Persistence/`), migrations (`Migrations/`) and `DependencyInjection.cs`.
+   (`Persistence/`), external service clients (`External/`), migrations
+   (`Migrations/`) and `DependencyInjection.cs`.
    References `Application` and `Domain`.
 4. **Web**: Blazor Server UI (`Pages/`, `Shared/`). `Program.cs` is the
    composition root. References `Application` and `Infrastructure`.
@@ -116,8 +117,12 @@ dotnet ef database update --project Infrastructure --startup-project Web
   environment variables, never from source code or committed files.
 - The OMDb API key is read from `Omdb:ApiKey` (user secrets of the `Web` project).
 - External service clients are interfaces in `Application/Interfaces` implemented
-  in `Infrastructure`. A missing key, a network error or a rate limit must return a
-  clear error, never crash the app.
+  in `Infrastructure/External` with a typed `HttpClient`. A missing key, a network
+  error or a rate limit must return a clear error, never crash the app: clients throw
+  `ExternalServiceException` with a user-readable message.
+- The movie catalog port is `IMovieCatalogClient` (implemented by `OmdbClient`). It
+  returns clean values (`null` or empty lists, never OMDb's `"N/A"`), so services know
+  nothing about HTTP, JSON or OMDb formats.
 
 ## Testing
 

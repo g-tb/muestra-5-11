@@ -1,0 +1,140 @@
+@page "/movies/import"
+
+<PageTitle>Import from OMDb</PageTitle>
+
+@using Application.Dtos
+@using Application.Exceptions
+@using Application.Services
+
+@inject IMovieImportService MovieImportService
+@inject NavigationManager NavigationManager
+
+<h1>Import from OMDb</h1>
+
+<form @onsubmit="Search">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="query" placeholder="Movie title" @bind="_query" disabled="@_busy" />
+        <button type="submit" class="btn btn-primary" disabled="@_busy">Search</button>
+    </div>
+</form>
+
+@if (_errorMessage is not null)
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_searched && _results.Count == 0 && _errorMessage is null)
+{
+    <div class="alert alert-info" role="status">No movies found.</div>
+}
+
+@if (_results.Count > 0)
+{
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>Poster</th>
+            <th>Title</th>
+            <th>Year</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var result in _results)
+        {
+            <tr>
+                <td>
+                    @if (result.PosterUrl is not null)
+                    {
+                        <img src="@result.PosterUrl" alt="Poster of @result.Title" style="height: 90px;" class="rounded" />
+                    }
+                    else
+                    {
+                        <div class="bg-secondary bg-opacity-25 text-muted small rounded d-flex align-items-center justify-content-center"
+                             style="height: 90px; width: 60px;">No poster</div>
+                    }
+                </td>
+                <td>@result.Title</td>
+                <td>@result.Year</td>
+                <td>
+                    <button class="btn btn-success btn-sm" disabled="@_busy" @onclick="(() => ImportMovie(result.ImdbId))">
+                        @(_importingId == result.ImdbId ? "Importing..." : "Import")
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private string? _query;
+
+    private List<MovieSearchResultDTO> _results = new();
+
+    private bool _searched;
+
+    private bool _busy;
+
+    private string? _importingId;
+
+    private string? _errorMessage;
+
+    private async Task Search()
+    {
+        await Run(async () =>
+        {
+            _results = new List<MovieSearchResultDTO>();
+            _searched = false;
+            _results = (await MovieImportService.SearchAsync(_query)).ToList();
+            _searched = true;
+        });
+    }
+
+    private async Task ImportMovie(string imdbId)
+    {
+        _importingId = imdbId;
+        bool imported = false;
+        await Run(async () =>
+        {
+            await MovieImportService.ImportAsync(imdbId);
+            imported = true;
+        });
+        _importingId = null;
+
+        if (imported)
+        {
+            NavigationManager.NavigateTo("/movies");
+        }
+    }
+
+    // Runs one search or import at a time and turns service errors into a message on the page.
+    private async Task Run(Func<Task> action)
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _errorMessage = null;
+        try
+        {
+            await action();
+        }
+        catch (Exception exception) when (exception is LogicException or ExternalServiceException)
+        {
+            _errorMessage = exception.Message;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Something went wrong, please try again.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+}

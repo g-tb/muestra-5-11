@@ -29,6 +29,8 @@ internal class MovieSqlRepository(MovieManagerDbContext dbContext) : SqlReposito
         target.Title = source.Title;
         target.Director = source.Director;
         target.ReleaseYear = source.ReleaseYear;
+        target.ImdbId = source.ImdbId;
+        target.ImdbRating = source.ImdbRating;
         target.Category = ResolveCategory(source.Category);
 
         // Resolve before clearing: source and target may be the same tracked instance.
