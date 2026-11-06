@@ -17,7 +17,11 @@ public class MovieDTO
     public CategoryDTO? Category { get; set; }
     
     public List<ActorDTO> Actors { get; set; } = new();
-    
+
+    public string? ImdbId { get; set; }
+
+    public decimal? ImdbRating { get; set; }
+
     public bool HasActor(int id){
         return Actors.Any(a => a.Id == id);
     }
@@ -31,7 +35,9 @@ public class MovieDTO
             Director = this.Director,
             ReleaseYear = this.ReleaseYear,
             Actors = this.Actors.Select(x => x.toEntity()).ToList(),
-            Category = this.Category?.toEntity()
+            Category = this.Category?.toEntity(),
+            ImdbId = this.ImdbId,
+            ImdbRating = this.ImdbRating
         };
     }
     
@@ -44,7 +50,9 @@ public class MovieDTO
             Director = movie.Director,
             ReleaseYear = movie.ReleaseYear,
             Category = CategoryDTO.fromEntity(movie.Category),
-            Actors = movie.Actors.Select(x => ActorDTO.fromEntity(x)!).ToList()
+            Actors = movie.Actors.Select(x => ActorDTO.fromEntity(x)!).ToList(),
+            ImdbId = movie.ImdbId,
+            ImdbRating = movie.ImdbRating
         };
     }
 }

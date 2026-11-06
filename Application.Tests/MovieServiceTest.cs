@@ -148,6 +148,72 @@ public class MovieServiceTest
         Assert.AreEqual("Can't add movie with same Title", exception.Message);
     }
 
+    [TestMethod]
+    public void AddMovie_WithImdbFields_ReturnsThem()
+    {
+        MovieDTO added = _movieService.AddMovie(new MovieDTO { Title = "The Matrix", ImdbId = "tt0133093", ImdbRating = 8.7m });
+
+        Assert.AreEqual("tt0133093", added.ImdbId);
+        Assert.AreEqual(8.7m, added.ImdbRating);
+    }
+
+    [TestMethod]
+    public void AddMovie_DuplicateImdbId_ThrowsLogicException()
+    {
+        _movieService.AddMovie(new MovieDTO { Title = "The Matrix", ImdbId = "tt0133093" });
+
+        var exception = AssertThrows<LogicException>(
+            () => _movieService.AddMovie(new MovieDTO { Title = "Matrix", ImdbId = "tt0133093" }));
+
+        Assert.AreEqual("Can't add movie with same IMDb id", exception.Message);
+    }
+
+    [TestMethod]
+    public void AddMovie_DuplicateImdbIdDifferentCase_ThrowsLogicException()
+    {
+        _movieService.AddMovie(new MovieDTO { Title = "The Matrix", ImdbId = "tt0133093" });
+
+        var exception = AssertThrows<LogicException>(
+            () => _movieService.AddMovie(new MovieDTO { Title = "Matrix", ImdbId = " TT0133093 " }));
+
+        Assert.AreEqual("Can't add movie with same IMDb id", exception.Message);
+    }
+
+    [TestMethod]
+    public void AddMovie_SeveralMoviesWithoutImdbId_AllAdded()
+    {
+        _movieService.AddMovie(new MovieDTO { Title = "Avatar" });
+        _movieService.AddMovie(new MovieDTO { Title = "Avatar 2" });
+        _movieService.AddMovie(new MovieDTO { Title = "Avatar 3" });
+
+        Assert.AreEqual(3, _movieService.GetAll().Count);
+    }
+
+    [TestMethod]
+    public void Update_ImdbIdUsedByAnotherMovie_ThrowsLogicException()
+    {
+        _movieService.AddMovie(new MovieDTO { Title = "The Matrix", ImdbId = "tt0133093" });
+        MovieDTO inception = _movieService.AddMovie(new MovieDTO { Title = "Inception", ImdbId = "tt1375666" });
+        inception.ImdbId = "tt0133093";
+
+        var exception = AssertThrows<LogicException>(() => _movieService.Update(inception));
+
+        Assert.AreEqual("Can't add movie with same IMDb id", exception.Message);
+        Assert.AreEqual("tt1375666", _movieService.FindById(inception.Id).ImdbId);
+    }
+
+    [TestMethod]
+    public void Update_KeepsOwnImdbId_Succeeds()
+    {
+        MovieDTO matrix = _movieService.AddMovie(new MovieDTO { Title = "The Matrix", ImdbId = "tt0133093", ImdbRating = 8.7m });
+        matrix.ImdbRating = 8.8m;
+
+        MovieDTO updated = _movieService.Update(matrix);
+
+        Assert.AreEqual("tt0133093", updated.ImdbId);
+        Assert.AreEqual(8.8m, updated.ImdbRating);
+    }
+
     private static TException AssertThrows<TException>(Action action)
         where TException : Exception
     {
