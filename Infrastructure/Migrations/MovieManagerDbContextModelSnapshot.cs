@@ -77,6 +77,14 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ImdbId")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("ImdbRating")
+                        .HasPrecision(3, 1)
+                        .HasColumnType("decimal(3,1)");
+
                     b.Property<int?>("ReleaseYear")
                         .HasColumnType("int");
 
@@ -89,11 +97,19 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("ImdbId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Movies_ImdbId")
+                        .HasFilter("[ImdbId] IS NOT NULL");
+
                     b.HasIndex("Title")
                         .IsUnique()
                         .HasDatabaseName("UX_Movies_Title");
 
-                    b.ToTable("Movies", "dbo");
+                    b.ToTable("Movies", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_Movies_ImdbRating", "[ImdbRating] >= 0 AND [ImdbRating] <= 10");
+                        });
                 });
 
             modelBuilder.Entity("MovieActor", b =>
