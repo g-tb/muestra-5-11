@@ -11,6 +11,7 @@ public static class DependencyInjection
         services.AddScoped<IMovieService, MovieService>();
         services.AddScoped<IActorService, ActorService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IMovieImportService, MovieImportService>();
 
         return services;
     }
