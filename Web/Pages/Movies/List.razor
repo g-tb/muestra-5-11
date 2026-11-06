@@ -22,7 +22,9 @@
     <th>Title</th>
     <th>Director</th>
     <th>Release Year</th>
-    
+    <th>Rating</th>
+    <th>Actors</th>
+
     <th>Acciones</th>
 </tr>
 
@@ -35,6 +37,8 @@
         <td>@movie.Title</td>
         <td>@movie.Director</td>
         <td>@movie.ReleaseYear</td>
+        <td>@(movie.ImdbRating?.ToString("0.0") ?? "—")</td>
+        <td>@(movie.Actors.Count > 0 ? string.Join(", ", movie.Actors.Select(actor => actor.Name)) : "—")</td>
         <td>
         
            <a class="btn btn-success btn-sm" href="movies/@movie.Id/edit/">Editar</a>
